@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dream Chamber Remixed</title>
+<meta name="description" content="Jam with Daft Punk stems in your browser — pick a groove, lead and extra from different songs, auto-synced in tempo and key. Inspired by The Daft Punk Experience.">
+<meta name="theme-color" content="#03040c">
+<!-- Add to Home Screen: opens full screen, without the browser's bars -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.2.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dream Chamber">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@500;600;700&family=Geist:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="solid.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='21' fill='%2303040C'/><path d='M17.564 28.617A38.85 38.85 0 0 1 82.436 28.617L72.278 34.482A27.15 27.15 0 0 0 27.722 34.482Z' fill='%2302BFF1'/><path d='M84.736 32.601A38.85 38.85 0 0 1 52.300 88.782L52.300 77.052A27.15 27.15 0 0 0 74.578 38.466Z' fill='%2300E7AC'/><path d='M47.700 88.782A38.85 38.85 0 0 1 15.264 32.601L25.422 38.466A27.15 27.15 0 0 0 47.700 77.052Z' fill='%23BA3CF2'/><path d='M43.5 39.4Q43.5 37.2 45.7 38.4L62.5 48.5Q64.9 50 62.5 51.5L45.7 61.6Q43.5 62.8 43.5 60.6Z' fill='%23fff'/></svg>">
+</head>
+<body>
+<div class="file-note" id="fileNote" hidden>
+  <h2>Start the local server first</h2>
+  <p>Browsers block audio and scripts on pages opened straight from disk. On Windows, double-click
+    <b>start.cmd</b> next to this file: it starts a tiny local server (nothing to install) and opens the app.
+    On a Mac or Linux, run <code>npm run dev</code>.</p>
+</div>
+<script>if (location.protocol === 'file:') document.getElementById('fileNote').hidden = false;</script>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div class="scrim" aria-hidden="true"></div>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="11 11 78 78" aria-hidden="true"><path d="M17.564 28.617A38.85 38.85 0 0 1 82.436 28.617L72.278 34.482A27.15 27.15 0 0 0 27.722 34.482Z" fill="#02BFF1"/><path d="M84.736 32.601A38.85 38.85 0 0 1 52.300 88.782L52.300 77.052A27.15 27.15 0 0 0 74.578 38.466Z" fill="#00E7AC"/><path d="M47.700 88.782A38.85 38.85 0 0 1 15.264 32.601L25.422 38.466A27.15 27.15 0 0 0 47.700 77.052Z" fill="#BA3CF2"/><path d="M43.5 39.4Q43.5 37.2 45.7 38.4L62.5 48.5Q64.9 50 62.5 51.5L45.7 61.6Q43.5 62.8 43.5 60.6Z" fill="#fff"/></svg>
+      <div>
+        <h1>Dream Chamber <span>Remixed</span> <em class="ver" id="version">v1.2 beta</em></h1>
+        <p>The Daft Punk Experience · stem jam</p>
+      </div>
+    </div>
+
+    <div class="clock" aria-live="off">
+      <span class="clock-bar" id="barReadout">BAR --</span>
+      <span class="beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </div>
+
+    <nav class="transport" aria-label="Transport">
+      <button class="tbtn tbtn-play" id="playBtn" title="Play / stop (P)">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-play"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-stop"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>
+        <span class="tlabel">Play</span>
+      </button>
+      <button class="tbtn" id="randomBtn" title="Random mix (R)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2 0 3.2 1 4.3 2.7l2.4 4.6c1 1.7 2.3 2.7 4.3 2.7H21M3 17h3.5c1.4 0 2.4-.5 3.2-1.4M14.3 8.4c.8-.9 1.8-1.4 3.2-1.4H21M18 4l3 3-3 3M18 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tlabel">Random</span>
+      </button>
+      <button class="tbtn tbtn-rec" id="recBtn" title="Record the jam to a file">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+        <span class="tlabel">Rec</span>
+      </button>
+      <button class="tbtn" id="exportBtn" title="Download one 32-bar loop as WAV">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tlabel">Export</span>
+      </button>
+      <button class="tbtn" id="shareBtn" title="Copy a link to this mix">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="tlabel">Share</span>
+      </button>
+      <label class="master-vol" title="Master volume">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="range" id="masterVol" min="0" max="1" step="0.01" value="0.9" aria-label="Master volume">
+      </label>
+      <button class="tbtn tbtn-icon" id="helpBtn" title="Controls (?)" aria-label="Controls and help">?</button>
+    </nav>
+  </header>
+
+  <aside class="left">
+    <button class="jam-btn" id="jamBtn" type="button" title="Capture the mouse to steer the wheel (Tab or Esc to exit)">
+      <kbd class="kc" data-kb="Tab"></kbd>
+      <svg class="jam-mouse" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span class="jam-on">Exit Jam</span>
+      <span class="jam-off">Enter Jam <small>mouse steers the wheel</small></span>
+    </button>
+    <div class="controls">
+      <div class="ctl">
+        <div class="ctl-label">Tempo</div>
+        <div class="pill tempo">
+          <button id="tempoDown" aria-label="Slower"><kbd class="kc" data-kb="Z" data-touch="−"></kbd></button>
+          <output id="bpmOut" aria-live="polite">116</output>
+          <button id="tempoUp" aria-label="Faster"><kbd class="kc" data-kb="C" data-touch="+"></kbd></button>
+        </div>
+        <div class="ctl-sub" id="tempoSub">BPM</div>
+      </div>
+      <div class="ctl">
+        <div class="ctl-label">Key</div>
+        <div class="pill key">
+          <button id="keyLockBtn" class="lock" aria-pressed="true" title="Key lock: shift every stem into one key">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" fill="currentColor"/><path class="shackle" d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+          </button>
+          <select id="masterKey" aria-label="Master key"></select>
+        </div>
+        <div class="ctl-sub" id="keySub">Auto</div>
+      </div>
+    </div>
+
+    <section class="fx" aria-label="Audio FX">
+      <button class="fx-tune-btn" id="fxTuneBtn" type="button" aria-expanded="false" aria-controls="fxTune" aria-label="Effect settings" title="Effect settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+      <button class="fx-btn" id="fxBtn" aria-label="Audio FX (hold)" aria-describedby="fxHint">
+        <kbd class="kc kc-lg" data-kb="F"></kbd>
+        <span class="fx-text">Audio FX <em>(Hold)</em></span>
+        <span class="fx-name" id="fxName">Low-pass</span>
+      </button>
+      <div class="fx-row">
+        <kbd class="kc fx-kc" data-kb="Q" aria-hidden="true"></kbd>
+        <div class="fx-picker" id="fxPicker" role="radiogroup" aria-label="Choose the effect"></div>
+        <kbd class="kc fx-kc" data-kb="E" aria-hidden="true"></kbd>
+      </div>
+      <div class="fx-tune" id="fxTune" role="group" aria-label="Effect settings"></div>
+      <p class="fx-hint" id="fxHint"></p>
+    </section>
+
+    <ol class="layers" id="layers" aria-label="Your mix"></ol>
+  </aside>
+
+  <section class="right" aria-label="Song wheel">
+    <div class="wheel-box">
+      <div class="wheel-wrap" id="wheelWrap">
+        <svg id="wheel" class="wheel"></svg>
+        <div class="hub" id="hub">
+          <svg class="hub-ring" id="hubRing" viewBox="0 0 300 300" aria-hidden="true"></svg>
+          <div class="hub-cats" role="tablist" aria-label="Layer to fill" id="hubCats"></div>
+          <div class="hub-body" id="hubBody" aria-live="polite">
+            <div class="hub-title" id="hubTitle">Groove</div>
+            <div class="hub-sub" id="hubSub"></div>
+          </div>
+          <kbd class="kc hub-kc" data-kb="" aria-hidden="true" title="Space: next layer"><svg viewBox="0 0 40 24"><path d="M5 10.5v5h30v-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></kbd>
+        </div>
+      </div>
+    </div>
+
+    <div class="albums">
+      <button class="album-nav" id="albumPrev" aria-label="Previous album"><kbd class="kc" data-kb="A" data-touch="‹"></kbd></button>
+      <div class="album-strip" id="albumStrip" role="tablist" aria-label="Albums"></div>
+      <button class="album-nav" id="albumNext" aria-label="Next album"><kbd class="kc" data-kb="D" data-touch="›"></kbd></button>
+    </div>
+    <div class="album-name" id="albumName"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+
+<dialog class="help" id="help">
+  <form method="dialog">
+    <h2>How to jam</h2>
+    <ol class="steps">
+      <li><b>Pick a layer</b>: <kbd>Space</kbd> switches between <i class="c-groove">Groove</i>, <i class="c-lead">Lead</i> and <i class="c-texture">Extra</i>.</li>
+      <li><b>Pick a song</b>: hold the mouse button, drag through the songs and let go on the one you want (or just click it). It drops in on the next bar, synced to the tempo and key. Songs without a stem for the current layer show as empty slots.</li>
+      <li><b>Mix songs</b>: fill each layer from a different track. <kbd>A</kbd> / <kbd>D</kbd> flip albums.</li>
+      <li><b>Pick an Audio FX</b> (stutter, low-pass, high-pass, phaser, wah or tape stop) under the Audio FX button, then <b>hold <kbd>F</kbd></b> to play it. Let go and it snaps back. Pick new songs while you hold it and they <b>drop in the moment you let go</b>: a quick transition.</li>
+    </ol>
+    <p class="jam-tip"><b>Enter Jam</b> (top left, or click empty space) hides the cursor so small mouse flicks steer the wheel. <kbd>Tab</kbd> exits.</p>
+    <div class="keys">
+      <section><h3>Keyboard &amp; mouse</h3>
+        <dl>
+          <dt>Hold, drag, let go</dt><dd>Pick a song (or click it)</dd>
+          <dt><kbd>Space</kbd></dt><dd>Next layer (<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> jump)</dd>
+          <dt><kbd>F</kbd> (hold)</dt><dd>Play the chosen Audio FX</dd>
+          <dt><kbd>Q</kbd><kbd>E</kbd></dt><dd>Choose the Audio FX</dd>
+          <dt><kbd>Z</kbd><kbd>C</kbd></dt><dd>Tempo down / up</dd>
+          <dt><kbd>A</kbd><kbd>D</kbd></dt><dd>Previous / next album</dd>
+          <dt><kbd>Tab</kbd></dt><dd>Exit Jam</dd>
+          <dt><kbd>←</kbd><kbd>→</kbd> <kbd>Enter</kbd></dt><dd>Step around the wheel, pick</dd>
+          <dt><kbd>P</kbd> <kbd>R</kbd></dt><dd>Play/stop · random mix</dd>
+          <dt><kbd>M</kbd> <kbd>Backspace</kbd></dt><dd>Mute / clear current layer</dd>
+        </dl>
+      </section>
+    </div>
+    <p class="fine">Stems are 32-bar loops from The Daft Punk Experience. Fan project — audio © Daft Punk / their labels.<br>
+      Made by <a href="https://github.com/MuscularCrab" target="_blank" rel="noopener">MuscularCrab</a>,
+      <a href="https://github.com/lizardkingrick" target="_blank" rel="noopener">Lizardkingrick</a>
+      and 2Liter (<a href="https://www.instagram.com/the_peoples_yinzer/" target="_blank" rel="noopener">@the_peoples_yinzer</a>).
+      <a href="https://github.com/lizardkingrick/dream-chamber-remixed" target="_blank" rel="noopener">Source on GitHub</a> · <span class="ver-fine"></span></p>
+    <button class="help-close" value="close">Let's jam</button>
+  </form>
+</dialog>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

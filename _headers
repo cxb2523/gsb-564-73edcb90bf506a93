@@ -1,0 +1,33 @@
+# Cloudflare Pages headers.
+# Stem filenames change whenever their key/BPM changes, so they can be cached forever.
+/stems-ogg/*
+  Cache-Control: public, max-age=31536000, immutable
+/stems-flac/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Album covers can be rebuilt under the same name: cache for a day.
+/covers/*
+  Cache-Control: public, max-age=86400
+
+# App shell + manifest: always revalidate so updates show up immediately.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/index.html
+  Cache-Control: no-cache
+/js/*
+  Cache-Control: no-cache
+/style.css
+  Cache-Control: no-cache
+/solid.css
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/stems.json
+  Cache-Control: no-cache
+
+# Home-screen icons (rebuilt with python tools/build-icons.py): cache for a day.
+/icons/*
+  Cache-Control: public, max-age=86400
