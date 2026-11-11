@@ -1,5 +1,6 @@
 import * as E from './engine.js';
 import { state, LAYERS, NOTE, NOTE_NAMES, prettyKey } from './engine.js';
+import { analyzeMix } from './analyze.js';
 import { ALBUMS, albumById, songsForAlbum, displayName, albumArtUnique, loadCovers, LAYER_ICONS } from './catalog.js';
 import { createWheel } from './wheel.js';
 import { createStage } from './stage.js';
@@ -304,6 +305,7 @@ function buildControls() {
     } finally { btn.disabled = false; }
   };
   $('#shareBtn').onclick = shareMix;
+  $('#analyzeBtn').onclick = analyzeMixNow;
   $('#helpBtn').onclick = () => $('#help').showModal();
 }
 
@@ -726,6 +728,43 @@ function download(blob, name) {
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+}
+
+// ---------- mix analysis (the Analyze button) ----------
+// Renders one loop of the current mix offline (the same render the WAV export downloads) and
+// measures it. The render and the measurement both yield to the page, which stays usable
+// throughout; nothing here touches the playing mix.
+async function analyzeMixNow() {
+  const btn = $('#analyzeBtn'), out = $('#analyzeOut');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  out.hidden = false;
+  out.className = 'analyze-out busy';
+  out.textContent = 'Analysing the mix…';
+  try {
+    const mix = await E.renderMixChannels();
+    if (!mix) {
+      out.className = 'analyze-out empty';
+      out.textContent = 'Nothing to analyse yet — pick a stem on at least one layer first.';
+      return;
+    }
+    const r = await analyzeMix(mix.channels, mix.sampleRate);
+    const fmt = (v) => (v === -Infinity ? '−∞' : v.toFixed(1));
+    out.className = `analyze-out ${r.over ? 'over' : 'ok'}`;
+    out.innerHTML =
+      `<span class="row"><span>Integrated loudness</span><b>${fmt(r.lufs)} LUFS</b></span>` +
+      `<span class="row"><span>Sample peak</span><b>${fmt(r.samplePeakDb)} dBFS</b></span>` +
+      `<span class="row"><span>True peak (${r.oversampling}× oversampled)</span><b>${fmt(r.truePeakDb)} dBTP</b></span>` +
+      `<span class="verdict">${r.over
+        ? `Over the ${r.ceilingDb} dBTP ceiling — ease a layer down`
+        : `Within the ${r.ceilingDb} dBTP ceiling`}</span>`;
+  } catch (err) {
+    console.error(err);
+    out.className = 'analyze-out error';
+    out.textContent = 'Analysis failed — try again, or with fewer layers if memory is short.';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ---------- boot ----------

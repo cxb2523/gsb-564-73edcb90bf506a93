@@ -2509,12 +2509,14 @@ export const mixFileName = (ext) => `${mixName()}.${ext}`;
 // One full 32-bar cycle through the same glue as the live mix. It renders two cycles and keeps
 // the second, so the limiter is already settled and the file loops without a bump. The level is
 // the glue's output, the same as a recording's (both are taken before the master volume).
-export async function exportLoopWav() {
+// Returns { channels, sampleRate } (views into the rendered buffer — read-only, please), or
+// null when nothing is picked. The export and the mix analysis both start from this render.
+export async function renderMixChannels() {
   const ids = activeLayers().filter((id) => {
     const s = state.layers[id];
     return s.buffer && !s.muted && s.bufferBpm === clockBpm;
   });
-  if (!ids.length) { status('Nothing to export — pick some stems first'); return null; }
+  if (!ids.length) return null;
   const sr = ctx.sampleRate;
   const len = loopSamples(BEATS, clockBpm, sr);
   // Long enough for either glue's delay, which is skipped below so bar 1 lands at sample 0.
@@ -2534,7 +2536,13 @@ export async function exportLoopWav() {
   }
   const rendered = await off.startRendering();
   const from = len + glue.latency;
-  return encodeWav([0, 1].map((c) => rendered.getChannelData(c).subarray(from, from + len)), sr);
+  return { channels: [0, 1].map((c) => rendered.getChannelData(c).subarray(from, from + len)), sampleRate: sr };
+}
+
+export async function exportLoopWav() {
+  const mix = await renderMixChannels();
+  if (!mix) { status('Nothing to export — pick some stems first'); return null; }
+  return encodeWav(mix.channels, mix.sampleRate);
 }
 
 async function encodeWav(channels, sampleRate) {

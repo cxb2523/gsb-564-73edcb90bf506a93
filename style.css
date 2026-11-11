@@ -830,3 +830,15 @@ body.jamming .jam-btn { background: transparent; border-color: transparent; }
   .pill { justify-content: space-between; }
   .key select { flex: 1; min-width: 0; }
 }
+
+/* The mix analysis report (the Analyze button in the transport): three measured rows and the
+   verdict on the -1 dBTP ceiling, in the state the last run left them. */
+.analyze-out { margin-top: calc(10 * var(--u)); padding: calc(8 * var(--u)) calc(12 * var(--u)); border-radius: calc(6 * var(--u)); background: rgba(255, 255, 255, .06); font-size: calc(13 * var(--u)); line-height: 1.6; }
+.analyze-out[hidden] { display: none; }
+.analyze-out .row { display: flex; justify-content: space-between; gap: 1em; }
+.analyze-out .verdict { display: block; margin-top: calc(4 * var(--u)); font-weight: 700; }
+.analyze-out.busy { opacity: .65; }
+.analyze-out.empty { opacity: .75; }
+.analyze-out.error { color: #ff9a8a; }
+.analyze-out.ok .verdict { color: #00e7ac; }
+.analyze-out.over .verdict { color: #ffb44d; }

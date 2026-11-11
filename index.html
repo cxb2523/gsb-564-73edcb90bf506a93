@@ -64,6 +64,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="tlabel">Export</span>
       </button>
+      <button class="tbtn" id="analyzeBtn" title="Check the mix: loudness, sample peak and true peak">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-7M12 20V5M19 20v-11M3 20h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="tlabel">Analyze</span>
+      </button>
       <button class="tbtn" id="shareBtn" title="Copy a link to this mix">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <span class="tlabel">Share</span>
@@ -124,6 +128,10 @@
     </section>
 
     <ol class="layers" id="layers" aria-label="Your mix"></ol>
+
+    <section class="analyze" aria-label="Mix analysis">
+      <div class="analyze-out" id="analyzeOut" role="status" aria-live="polite" hidden></div>
+    </section>
   </aside>
 
   <section class="right" aria-label="Song wheel">
